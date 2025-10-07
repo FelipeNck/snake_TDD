@@ -90,12 +90,17 @@ class SnakeGame:
         head_y, head_x = self.snake_head_position
         next_pos = self._calculate_next_head_position(head_y, head_x, self.current_direction)
 
-        # 3. Verifica colisões e decide a ação
+        # 3. Verifica se a próxima posição da cabeça já é um segmento do corpo.
+        if next_pos in self.snake[1:]:
+            self.is_game_over = True
+            return
+
+        # 4. Verifica colisões e decide a ação
         if next_pos == self.fruit_position:
             self._grow_snake(next_pos)
             self._spawn_fruit()
         else:
             self._move_snake(next_pos)
         
-        # 4. Atualiza a tela
+        # 5. Atualiza a tela
         self.update_matrix()
