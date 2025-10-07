@@ -96,3 +96,19 @@ class TestSnakeGame:
         # Conta quantas frutas existem na matriz depois de comer
         fruit_count_after_eating = sum(row.count(3) for row in self.io.matrix)
         assert fruit_count_after_eating == 1, "Deveria haver exatamente uma nova fruta após a cobra comer."
+
+    def test_game_over_on_self_collision(self):
+        # --- PREPARAÇÃO (Arrange) ---
+        # Cria uma cobra que vai colidir com o MEIO do seu corpo.
+        # A cabeça está em (0, 1), se movendo para baixo ('s'),
+        # em direção a um segmento do corpo que está em (1, 1).
+        self.game.snake = [(0, 0), (1, 0), (1, 1), (0, 1)]
+        self.game.snake_head_position = (0, 1)
+        self.game.current_direction = 's'
+        self.io.last_input = 's' # Garante que o input também é 's'
+
+        # Executa um passo do jogo, que deve causar a colisão.
+        self.game.update_game_state()
+
+        # O estado do jogo deve ser 'game over'.
+        assert self.game.is_game_over is True, "O jogo deveria terminar ao colidir com o próprio corpo."
