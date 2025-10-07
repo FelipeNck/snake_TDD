@@ -64,3 +64,34 @@ class TestSnakeGame:
         
         expected_new_head_x = (initial_head_pos[1] + 1) % self.io.x_size
         assert self.game.snake_head_position == (initial_head_pos[0], expected_new_head_x), "A cobra deve se mover para a direita."
+
+    def test_fruit_spawns_correctly(self):
+        # Conta quantas frutas existem na matriz
+        fruit_count = sum(row.count(3) for row in self.io.matrix)
+        assert fruit_count == 1, "Deveria haver exatamente uma fruta ao iniciar o jogo."
+
+    def test_snake_eats_fruit_and_grows(self):
+        # Simula o crescimento da cobra ao comer fruta
+        # Posiciona uma cobra curta
+        self.game.snake = [(0, 0), (0, 1)]
+        self.game.snake_head_position = (0, 1)
+        self.game.current_direction = 'd' # Garante que ela se moverá para a direita
+        
+        # Coloca uma fruta (valor 3) na frente da cabeça da cobra
+        fruit_position = (0, 2)
+        self.io.matrix[fruit_position[0]][fruit_position[1]] = 3
+        
+        # Guarda o tamanho inicial da cobra
+        initial_length = len(self.game.snake)
+
+        self.game.update_game_state()
+
+        # A cobra deve ter um segmento a mais
+        assert len(self.game.snake) == initial_length + 1, "A cobra deveria crescer ao comer a fruta."
+        
+        # A cabeça da cobra deve estar na posição onde a fruta estava
+        assert self.game.snake_head_position == fruit_position, "A cabeça da cobra deveria ocupar a posição da fruta."
+
+        # Conta quantas frutas existem na matriz depois de comer
+        fruit_count_after_eating = sum(row.count(3) for row in self.io.matrix)
+        assert fruit_count_after_eating == 1, "Deveria haver exatamente uma nova fruta após a cobra comer."
