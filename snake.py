@@ -2,6 +2,10 @@ import random
 from snake_screen import io_handler
 
 class SnakeGame:
+    COLLISION_TYPE_NONE = 0
+    COLLISION_TYPE_FRUIT = 1
+    COLLISION_TYPE_SELF = 2
+
     def __init__(self, io_handler_instance: io_handler):
         self.io = io_handler_instance
         self.snake = [(0, 0), (0, 1)] 
@@ -51,6 +55,14 @@ class SnakeGame:
         if not is_opposite_direction:
             self.current_direction = new_direction
 
+    def _get_collision_type(self, position):
+        """Verifica uma posição e retorna o tipo de colisão."""
+        if position in self.snake[1:]:
+            return self.COLLISION_TYPE_SELF
+        if position == self.fruit_position:
+            return self.COLLISION_TYPE_FRUIT
+        return self.COLLISION_TYPE_NONE
+
     def _move_snake(self, new_head_position):
         """Move a cobra para a frente (sem crescer)."""
         self.snake.append(new_head_position)
@@ -90,17 +102,17 @@ class SnakeGame:
         head_y, head_x = self.snake_head_position
         next_pos = self._calculate_next_head_position(head_y, head_x, self.current_direction)
 
-        # 3. Verifica se a próxima posição da cabeça já é um segmento do corpo.
-        if next_pos in self.snake[1:]:
-            self.is_game_over = True
-            return
+        # 3. Verifica o que tem na próxima casa
+        collision_type = self._get_collision_type(next_pos)
 
-        # 4. Verifica colisões e decide a ação
-        if next_pos == self.fruit_position:
+        # 4. Age com base na resposta
+        if collision_type == self.COLLISION_TYPE_SELF:
+            self.is_game_over = True
+        elif collision_type == self.COLLISION_TYPE_FRUIT:
             self._grow_snake(next_pos)
             self._spawn_fruit()
-        else:
+        else: # COLLISION_TYPE_NONE
             self._move_snake(next_pos)
-        
+
         # 5. Atualiza a tela
         self.update_matrix()
