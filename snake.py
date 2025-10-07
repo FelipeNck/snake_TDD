@@ -1,3 +1,4 @@
+import random
 from snake_screen import io_handler
 
 class SnakeGame:
@@ -6,11 +7,29 @@ class SnakeGame:
         self.snake = [(0, 0), (0, 1)] 
         self.snake_head_position = self.snake[-1]
         self.current_direction = 'd'
+        self.fruit_position = None
 
+        self._spawn_fruit()
         self.update_matrix()
 
+    # Em snake.py
+
+    def _spawn_fruit(self):
+        """Encontra uma célula vazia e atualiza o estado da fruta."""
+        
+        occupied_cells = set(self.snake)
+        empty_cells = []
+        
+        for y in range(self.io.y_size):
+            for x in range(self.io.x_size):
+                if (y, x) not in occupied_cells:
+                    empty_cells.append((y, x))
+        
+        if empty_cells:
+            self.fruit_position = random.choice(empty_cells)
+    
     def _calculate_next_head_position(self, current_head_y, current_head_x, direction):
-        # Calcula a próxima posição da cabeça com base na direção e limites da tela
+        """Calcula a próxima posição da cabeça com base na direção e limites da tela"""
         next_y, next_x = current_head_y, current_head_x
         
         if direction == 'w':
@@ -36,6 +55,10 @@ class SnakeGame:
             else:
                 self.io.matrix[y][x] = 1
 
+        if self.fruit_position:
+            y, x = self.fruit_position
+            self.io.matrix[y][x] = 3
+
     def update_game_state(self):
         new_direction = self.io.last_input
         
@@ -51,9 +74,18 @@ class SnakeGame:
 
         head_y, head_x = self.snake_head_position
         new_head_position = self._calculate_next_head_position(head_y, head_x, self.current_direction)
+        new_head_y, new_head_x = new_head_position
+
+        ate_fruit = (new_head_position == self.fruit_position)
         
         self.snake.append(new_head_position)
-        self.snake.pop(0)
         self.snake_head_position = new_head_position
+
+        if ate_fruit:
+            # Se comeu a fruta, a cauda NÃO é removida e uma nova fruta é gerada
+            self._spawn_fruit()
+        else:
+            # Se não comeu nada, a cauda é removida para simular o movimento
+            self.snake.pop(0)
 
         self.update_matrix()

@@ -75,11 +75,12 @@ class TestSnakeGame:
         # Posiciona uma cobra curta
         self.game.snake = [(0, 0), (0, 1)]
         self.game.snake_head_position = (0, 1)
-        self.game.current_direction = 'd' # Garante que ela se moverá para a direita
+        self.game.current_direction = 'd' 
+        self.io.last_input = 'd' # Garante que ela se moverá para a direita
         
         # Coloca uma fruta (valor 3) na frente da cabeça da cobra
         fruit_position = (0, 2)
-        self.io.matrix[fruit_position[0]][fruit_position[1]] = 3
+        self.game.fruit_position = fruit_position
         
         # Guarda o tamanho inicial da cobra
         initial_length = len(self.game.snake)
