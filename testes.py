@@ -48,13 +48,15 @@ class TestSnakeGame:
         self.game.snake = [(0,1), (0,2)] # Ex: corpo em (0,1), cabeça em (0,2)
         self.game.snake_head_position = (0,2)
         self.game.update_matrix()
+
+        self.game.current_direction = 'w'
         
         self.io.last_input = 'a'
         initial_head_pos = self.game.snake_head_position
         self.game.update_game_state()
         
         expected_new_head_x = (initial_head_pos[1] - 1 + self.io.x_size) % self.io.x_size
-        assert self.game.snake_head_position == (initial_new_head_pos[0], expected_new_head_x), "A cobra deve se mover para a esquerda."
+        assert self.game.snake_head_position == (initial_head_pos[0], expected_new_head_x), "A cobra deve se mover para a esquerda."
 
     def test_snake_moves_right(self):
         # Simula o input 'd' e verifica se a cobra se move para a direita
