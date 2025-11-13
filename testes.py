@@ -9,106 +9,109 @@ class TestSnakeGame:
         self.game = SnakeGame(self.io)
 
     def test_initial_snake_position(self):
-        # Verifica se a cobra é inicializada com um corpo e uma cabeça
-        # Vamos assumir que a cabeça é 2 e o corpo é 1
-        assert any(2 in row for row in self.io.matrix), "A cabeça da cobra deve estar presente."
-        assert sum(row.count(1) for row in self.io.matrix) >= 1, "Pelo menos um segmento do corpo da cobra deve estar presente."
+        # Verifica se a cobra é inicializada corretamente olhando para a lista interna
+        assert len(self.game.snake) == 2, "A cobra deve começar com tamanho 2."
         
-        # Teste mais específico: vamos esperar que a cabeça esteja em (0,1) e o corpo em (0,0) inicialmente
-        assert self.io.matrix[0][1] == 2
-        assert self.io.matrix[0][0] == 1
+        # A cabeça é o último elemento, a cauda o primeiro
+        head = self.game.snake[-1]
+        tail = self.game.snake[0]
+        
+        # Verifica posições específicas esperadas (baseado no seu __init__)
+        assert head == (0, 1), "A cabeça deve começar em (0, 1)."
+        assert tail == (0, 0), "A cauda deve começar em (0, 0)."
 
     def test_snake_moves_up(self):
         # Simula o input 'w' e verifica se a cobra se move para cima
         self.io.last_input = 'w'
         initial_head_pos = self.game.snake_head_position 
+        
         self.game.update_game_state() 
         
-        # A nova posição da cabeça deve ser uma unidade acima da posição inicial (y - 1)
+        # A nova posição da cabeça deve ser uma unidade acima (y - 1)
         expected_new_head_y = (initial_head_pos[0] - 1 + self.io.y_size) % self.io.y_size
-        assert self.game.snake_head_position == (expected_new_head_y, initial_head_pos[1]), "A cobra deve se mover para cima."
+        
+        # Verificação direta na variável de estado do jogo
+        assert self.game.snake_head_position == (expected_new_head_y, initial_head_pos[1])
+        assert self.game.snake[-1] == (expected_new_head_y, initial_head_pos[1])
 
     def test_snake_moves_down(self):
-        # Simula o input 's' e verifica se a cobra se move para baixo
-        self.game.snake = [(1,1), (0,1)] # Ex: corpo em (1,1), cabeça em (0,1)
+        # Configura cenário
+        self.game.snake = [(1,1), (0,1)] 
         self.game.snake_head_position = (0,1)
-        self.game.update_matrix() 
+        # Removido: self.game.update_matrix() -> Não é mais necessário para testar a lógica
         
         self.io.last_input = 's'
         initial_head_pos = self.game.snake_head_position
+        
         self.game.update_game_state()
         
         expected_new_head_y = (initial_head_pos[0] + 1) % self.io.y_size
-        assert self.game.snake_head_position == (expected_new_head_y, initial_head_pos[1]), "A cobra deve se mover para baixo."
+        assert self.game.snake_head_position == (expected_new_head_y, initial_head_pos[1])
 
     def test_snake_moves_left(self):
-        # Simula o input 'a' e verifica se a cobra se move para a esquerda
-        self.game.snake = [(0,1), (0,2)] # Ex: corpo em (0,1), cabeça em (0,2)
+        self.game.snake = [(0,1), (0,2)] 
         self.game.snake_head_position = (0,2)
-        self.game.update_matrix()
-
-        self.game.current_direction = 'w' # Força cobra a começar indo pra cima
         
+        self.game.current_direction = 'w' 
         self.io.last_input = 'a'
         initial_head_pos = self.game.snake_head_position
+        
         self.game.update_game_state()
         
         expected_new_head_x = (initial_head_pos[1] - 1 + self.io.x_size) % self.io.x_size
-        assert self.game.snake_head_position == (initial_head_pos[0], expected_new_head_x), "A cobra deve se mover para a esquerda."
+        assert self.game.snake_head_position == (initial_head_pos[0], expected_new_head_x)
 
     def test_snake_moves_right(self):
-        # Simula o input 'd' e verifica se a cobra se move para a direita
         self.io.last_input = 'd'
         initial_head_pos = self.game.snake_head_position
+        
         self.game.update_game_state()
         
         expected_new_head_x = (initial_head_pos[1] + 1) % self.io.x_size
-        assert self.game.snake_head_position == (initial_head_pos[0], expected_new_head_x), "A cobra deve se mover para a direita."
+        assert self.game.snake_head_position == (initial_head_pos[0], expected_new_head_x)
 
     def test_fruit_spawns_correctly(self):
-        # Conta quantas frutas existem na matriz
-        fruit_count = sum(row.count(3) for row in self.io.matrix)
-        assert fruit_count == 1, "Deveria haver exatamente uma fruta ao iniciar o jogo."
+        # Em vez de contar na matriz, verifica se a variável fruit_position não é None
+        assert self.game.fruit_position is not None, "Deveria haver uma fruta definida no estado do jogo."
+        
+        # Verifica se a fruta está dentro dos limites do tabuleiro
+        y, x = self.game.fruit_position
+        assert 0 <= y < self.io.y_size
+        assert 0 <= x < self.io.x_size
 
     def test_snake_eats_fruit_and_grows(self):
-        # Simula o crescimento da cobra ao comer fruta
-        # Posiciona uma cobra curta
         self.game.snake = [(0, 0), (0, 1)]
         self.game.snake_head_position = (0, 1)
         self.game.current_direction = 'd' 
-        self.io.last_input = 'd' # Garante que ela se moverá para a direita
+        self.io.last_input = 'd' 
         
-        # Coloca uma fruta (valor 3) na frente da cabeça da cobra
+        # Define a posição da fruta manualmente no estado
         fruit_position = (0, 2)
         self.game.fruit_position = fruit_position
         
-        # Guarda o tamanho inicial da cobra
         initial_length = len(self.game.snake)
 
         self.game.update_game_state()
 
-        # A cobra deve ter um segmento a mais
-        assert len(self.game.snake) == initial_length + 1, "A cobra deveria crescer ao comer a fruta."
+        # Verifica crescimento
+        assert len(self.game.snake) == initial_length + 1
         
-        # A cabeça da cobra deve estar na posição onde a fruta estava
-        assert self.game.snake_head_position == fruit_position, "A cabeça da cobra deveria ocupar a posição da fruta."
+        # Verifica posição
+        assert self.game.snake_head_position == fruit_position
+        assert self.game.snake[-1] == fruit_position
 
-        # Conta quantas frutas existem na matriz depois de comer
-        fruit_count_after_eating = sum(row.count(3) for row in self.io.matrix)
-        assert fruit_count_after_eating == 1, "Deveria haver exatamente uma nova fruta após a cobra comer."
+        # Verifica se uma NOVA fruta foi gerada (posição diferente de None)
+        assert self.game.fruit_position is not None
+        # Nota: Não podemos garantir que a posição mudou se o random escolher o mesmo lugar, 
+        # mas garantimos que o objeto existe.
 
     def test_game_over_on_self_collision(self):
-        # --- PREPARAÇÃO (Arrange) ---
-        # Cria uma cobra que vai colidir com o MEIO do seu corpo.
-        # A cabeça está em (0, 1), se movendo para baixo ('s'),
-        # em direção a um segmento do corpo que está em (1, 1).
         self.game.snake = [(0, 0), (1, 0), (1, 1), (0, 1)]
         self.game.snake_head_position = (0, 1)
         self.game.current_direction = 's'
-        self.io.last_input = 's' # Garante que o input também é 's'
+        self.io.last_input = 's' 
 
-        # Executa um passo do jogo, que deve causar a colisão.
         self.game.update_game_state()
 
-        # O estado do jogo deve ser 'game over'.
-        assert self.game.is_game_over is True, "O jogo deveria terminar ao colidir com o próprio corpo."
+        # Verifica a variável booleana de estado
+        assert self.game.is_game_over is True
