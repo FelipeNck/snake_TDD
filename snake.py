@@ -15,11 +15,11 @@ class SnakeGame:
         self.is_game_over = False 
 
         self._spawn_fruit()
-        self.update_matrix()
 
     def _spawn_fruit(self):
         occupied_cells = set(self.snake)
         empty_cells = []
+        # Ainda usamos self.io para saber o TAMANHO do tabuleiro, o que é ok
         for y in range(self.io.y_size):
             for x in range(self.io.x_size):
                 if (y, x) not in occupied_cells:
@@ -73,20 +73,6 @@ class SnakeGame:
         """Faz a cobra crescer, adicionando a nova cabeça."""
         self.snake.append(new_head_position)
         self.snake_head_position = new_head_position
-    
-    def update_matrix(self):
-        for y in range(self.io.y_size):
-            for x in range(self.io.x_size):
-                self.io.matrix[y][x] = 0
-        for i, segment in enumerate(self.snake):
-            y, x = segment
-            if i == len(self.snake) - 1:
-                self.io.matrix[y][x] = 2
-            else:
-                self.io.matrix[y][x] = 1
-        if self.fruit_position:
-            y, x = self.fruit_position
-            self.io.matrix[y][x] = 3
 
     def update_game_state(self):
         """Coordena todas as ações de um passo do jogo."""
@@ -113,6 +99,3 @@ class SnakeGame:
             self._spawn_fruit()
         else: # COLLISION_TYPE_NONE
             self._move_snake(next_pos)
-
-        # 5. Atualiza a tela
-        self.update_matrix()
